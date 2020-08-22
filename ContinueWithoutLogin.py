@@ -23,7 +23,7 @@ class continue_without_login:
         self.video_slider.pack(pady=10)
         self.Video_Progress = Thread(target=self.Video_progress)
         self.Video_Progress.start()
-        self.video_timer = Label(text="00:00/00:00")
+        self.video_timer = Label(self.player_window,text="00:00/00:00")
         self.video_timer.pack()
         t=Thread(target=self.timer)
         t.start()
@@ -119,7 +119,9 @@ class continue_without_login:
 
             self.player = vlc.MediaPlayer(self.filename)
             self.player.play()
-            time.sleep(0.0250)
+            #time.sleep(0.0250)
+            while(self.player.get_length()==0):
+                pass
             self.video_slider.config(state="active",from_=0, to=self.player.get_length())
             self.length=self.player.get_length()
             self.player.audio_set_volume(self.volume.get())

@@ -7,7 +7,6 @@ import vlc
 
 filename = ""
 player = ""
-global state
 state = ""
 running=True
 #Check_Volume = Thread(target=check_volume)
