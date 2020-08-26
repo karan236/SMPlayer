@@ -46,6 +46,23 @@ class create_new_account:
         self.create_new_account_window.mainloop()
 
 
+    def receive_data(self,server):
+        full_msg = b''
+        new_msg = True
+        msglen=0
+        while True:
+            msg = server.recv(64)
+            if new_msg:
+                msglen = int(msg[:20])
+                new_msg = False
+
+            full_msg += msg
+
+            if len(full_msg) - 20 == msglen:
+                new_msg = True
+                return full_msg[20:].decode()
+
+
 
 
     def create_new_account_action(self):
@@ -57,14 +74,17 @@ class create_new_account:
             data.append(self.last_name_text.get())
             data.append(self.username_text.get())
             data.append(self.password_text.get())
-            print("data= ",data)
             message=pickle.dumps(data)
             message=bytes(f"{len(message):<20}",'utf-8')+message
             try:
                 StartingPage.server.send(bytes(f"{len('new_account'):<20}" + 'new_account', 'utf-8'))
                 StartingPage.server.send(message)
-                messagebox.showinfo('Success','Successfully created new account. Please retart the app and login to continue.')
-                self.create_new_account_window.destroy()
+                check=self.receive_data(StartingPage.server)
+                if check=='true':
+                    messagebox.showinfo('Success','Successfully created new account. Please retart the app and login to continue.')
+                    self.create_new_account_window.destroy()
+                else:
+                    messagebox.showerror('Username already exists','Username already exists. Please choose a different user name.')
             except:
                 messagebox.showerror('Error','An error occured while creating a new account. Please restart the app and try again.')
                 self.create_new_account_window.destroy()

@@ -39,12 +39,12 @@ class login:
 
 
 
-    def receive_data(self,client):
+    def receive_data(self,server):
         full_msg = b''
         new_msg = True
         msglen=0
         while True:
-            msg = client.recv(64)
+            msg = server.recv(64)
             if new_msg:
                 msglen = int(msg[:20])
                 new_msg = False
@@ -63,7 +63,6 @@ class login:
             data = []
             data.append(self.username_text.get())
             data.append(self.password_text.get())
-            print("data= ", data)
             message = pickle.dumps(data)
             message = bytes(f"{len(message):<20}", 'utf-8') + message
             try:

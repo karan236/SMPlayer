@@ -4,7 +4,6 @@ from tkinter.filedialog import askopenfilename
 from threading import *
 import time
 import vlc
-import sys
 
 class continue_without_login:
     def __init__(self):
@@ -25,8 +24,8 @@ class continue_without_login:
         self.Video_Progress.start()
         self.video_timer = Label(self.player_window,text="00:00/00:00")
         self.video_timer.pack()
-        t=Thread(target=self.timer)
-        t.start()
+        video_timer=Thread(target=self.timer)
+        video_timer.start()
         self.stop_button = Button(self.player_window, text="Stop", width=7, command=lambda: self.stop())
         self.stop_button.pack(side="right", padx=5)
 

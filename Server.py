@@ -61,17 +61,23 @@ class Server:
             action=self.receive_data(client)
             if action=='new_account':
                 data=self.receive_object(client)
-                query = "INSERT INTO DATA VALUES(" + "\"" f"{data[0]}" + "\"" + "," + "\"" f"{data[1]}" + "\"" + "," + "\"" f"{data[2]}" + "\"" + "," + "\"" f"{data[3]}" + "\"" + ")"
+                query = "select * from data where username=" + "\"" f"{data[2]}" + "\""
                 self.cursor.execute(query)
-                self.database.commit()
-                return
+                if len(list(self.cursor))==0:
+                    client.send(bytes(f"{len('true'):<20}" + 'true', 'utf-8'))
+                    query = "INSERT INTO DATA VALUES(" + "\"" f"{data[0]}" + "\"" + "," + "\"" f"{data[1]}" + "\"" + "," + "\"" f"{data[2]}" + "\"" + "," + "\"" f"{data[3]}" + "\"" + ")"
+                    self.cursor.execute(query)
+                    self.database.commit()
+                    return
+                else:
+                    client.send(bytes(f"{len('false'):<20}" + 'false', 'utf-8'))
+
             else:
                 data=self.receive_object(client)
                 query = "select * from data where username=" + "\"" f"{data[0]}" + "\"" + " and " + "password=" + "\"" + f"{data[1]}" + "\""
                 self.cursor.execute(query)
                 if len(list(self.cursor))!=0:
                     client.send(bytes(f"{len('true'):<20}" + 'true', 'utf-8'))
-                    print('success')
                     return
                 else:
                     client.send(bytes(f"{len('false'):<20}" + 'false', 'utf-8'))
