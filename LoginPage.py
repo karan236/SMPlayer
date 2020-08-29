@@ -57,7 +57,7 @@ class login:
 
 
     def login_action(self):
-        if self.username_text.get()=="" or self.password_text=="":
+        if self.username_text.get()=="" or self.password_text.get()=="":
             messagebox.showerror('Error!','Please fill up all the details.')
         else:
             data = []
