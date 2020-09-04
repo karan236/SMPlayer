@@ -5,6 +5,7 @@ from threading import *
 import pickle
 import time
 import vlc
+import socket
 import StartingPage
 
 class admin_window:
@@ -239,13 +240,25 @@ class admin_window:
         if self.state=="playing":
             self.player.pause()
             self.state="pause"
+            if not self.running:
+                return
             StartingPage.server.send(bytes(f"{len('pause'):<20}" + 'pause', 'utf-8'))
 
     def play(self):
+        if not self.running:
+            return
         StartingPage.server.send(bytes(f"{len('play'):<20}" + 'play', 'utf-8'))
+        if not self.running:
+            return
         time = str(self.video_slider.get())
+        if not self.running:
+            return
         StartingPage.server.send(bytes(f"{len(time):<20}" + time, 'utf-8'))
+        if not self.running:
+            return
         if self.state=="pause":
+            if not self.running:
+                return
             self.player.play()
             self.state="playing"
 
@@ -256,6 +269,8 @@ class admin_window:
         elif self.filename=="":
             messagebox.showerror("No Video Found","Choose a video file to play")
         else:
+            if not self.running:
+                return
             self.player.play()
             self.state="playing"
             #self.player.set_fullscreen(True)
@@ -327,7 +342,11 @@ class admin_window:
         new_msg = True
         msglen=0
         while True:
-            msg = server.recv(64)
+            try:
+                msg = server.recv(64)
+            except:
+                print("recieve error handled")
+                return
             if new_msg:
                 msglen = int(msg[:20])
                 new_msg = False
@@ -340,9 +359,11 @@ class admin_window:
 
 
     def sync_thread(self):
-        while(True):
+        while(self.running):
             action=self.receive_data(StartingPage.server)
             print("sync thread: ", action)
+            if not self.running:
+                break
             if action=='sync':
                 if self.state=="":
                     StartingPage.server.send(bytes(f"{len('empty'):<20}" + 'empty', 'utf-8'))
@@ -350,9 +371,16 @@ class admin_window:
                     self.play()
                 elif self.state== "pause":
                     self.play()
+                    if not self.running:
+                        break
                     self.pause()
+            if not self.running:
+                break
 
     def close_window(self):
         self.running=False
+        StartingPage.server.send(bytes(f"{len('stop'):<20}" + 'stop', 'utf-8'))
+        StartingPage.server.shutdown(socket.SHUT_RDWR)
+        StartingPage.server.close()
         time.sleep(0.0001)
         self.player_window.destroy()

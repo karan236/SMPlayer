@@ -132,11 +132,17 @@ class Server:
 
     def admin_thread(self,client,admin_id):
         while(True):
-            action=self.receive_data(client)
+            try:
+                action=self.receive_data(client)
+            except:
+                return
+
             print(action)
+
             if action=='new file':
                 file_name,file_length=self.receive_object(client)
                 self.admin_file_length[admin_id]=[file_name, file_length]
+
             elif action=='play':
                 time = self.receive_data(client)
                 time = str(time)
@@ -148,18 +154,24 @@ class Server:
                     print("slider sent")
                     self.member_objects[i[-1]].send(bytes(f"{len(time):<20}" + time, 'utf-8'))
                     print("time sent")
+
             elif action=='pause':
                 query = "select * from member_data where admin_id=" + "\"" f"{admin_id}" + "\""
                 self.cursor.execute(query)
                 for i in list(self.cursor):
                     self.member_objects[i[-1]].send(bytes(f"{len('pause'):<20}" + 'pause', 'utf-8'))
+
             elif action=='empty':
                 query = "select * from member_data where admin_id=" + "\"" f"{admin_id}" + "\""
                 self.cursor.execute(query)
                 for i in list(self.cursor):
                     self.member_objects[i[-1]].send(bytes(f"{len('empty'):<20}" + 'empty', 'utf-8'))
 
-
+            elif action=='stop':
+                query = "select * from member_data where admin_id=" + "\"" f"{admin_id}" + "\""
+                self.cursor.execute(query)
+                for i in list(self.cursor):
+                    self.member_objects[i[-1]].send(bytes(f"{len('stop'):<20}" + 'stop', 'utf-8'))
 
     def member_thread(self,client,member_id):
         pass

@@ -6,6 +6,7 @@ import pickle
 import time
 import vlc
 import StartingPage
+import socket
 #import time
 
 
@@ -315,8 +316,11 @@ class member_window:
                 return full_msg[20:].decode()
 
     def reciever_thread(self):
-        while(True):
-            action=self.receive_data(StartingPage.server)
+        while(self.running):
+            try:
+                action=self.receive_data(StartingPage.server)
+            except:
+                return
             print(action)
             if action=='play':
                 self.play()
@@ -330,6 +334,13 @@ class member_window:
 
             elif action=='pause':
                 self.pause()
+            elif action=='stop':
+                self.stop()
+                self.info_label.config(text="Disconnected by admin  :(")
+                StartingPage.server.shutdown(socket.SHUT_RDWR)
+                StartingPage.server.close()
+                return
+
     def sync(self):
         self.sync_and_play_button.config(state="disabled")
         self.info_label.config(text='Synced with admin.')
