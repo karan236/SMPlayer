@@ -6,108 +6,101 @@ import pickle
 import time
 import vlc
 import StartingPage
+#import time
 
-class admin_window:
+
+class member_window:
     def __init__(self):
-        self.room_id_password=self.receive_object(StartingPage.server)
 
-        #self.room_id_password=StartingPage.server.recv(5120)
-        #pickle.loads(self.room_id_password[20:])
-        self.ex=True
-        self.video_title=""
+        # self.room_id_password=StartingPage.server.recv(5120)
+        # pickle.loads(self.room_id_password[20:])
+        self.admin_file_name=self.receive_object(StartingPage.server)
+        print(self.admin_file_name)
+        self.video_title = ""
         self.filename = ""
         self.player = ""
         self.state = ""
-        self.running=True
-        self.length="00:00"
-        self.show_more=False
+        self.running = True
+        self.length = "00:00"
+        self.show_more = False
         self.player_window = Tk()
-        self.player_window.geometry("700x155")
+        self.player_window.geometry("700x125")
         self.player_window.resizable(False, False)
 
-        #self.room_id_password_label=Label(self.player_window,text="Room Id: "+self.room_id_password[0]+"     Password: "+self.room_id_password[1],font=10)
-        self.room_id_password_label = Label(self.player_window,text="Please choose a video file ", font=10)
-        self.room_id_password_label.pack(pady=5)
+        self.info_label = Label(self.player_window, text="Please choose " + self.admin_file_name[0], font=10)
+        self.info_label.pack(pady=5)
 
-        self.player_frame=Frame(self.player_window,bg='red')
+        self.player_frame = Frame(self.player_window, bg='red')
         self.player_frame.pack()
 
-        self.video_slider = Scale(self.player_frame, orient=HORIZONTAL, sliderlength=10, width=5, showvalue=0, length=690,
-                             state="disabled",command=self.video_slider_change)
+        self.video_slider = Scale(self.player_frame, orient=HORIZONTAL, sliderlength=10, width=5, showvalue=0,
+                                  length=690,
+                                  state="disabled")
         self.video_slider.pack(pady=10)
         self.Video_Progress = Thread(target=self.Video_progress)
         self.Video_Progress.start()
-        self.video_timer = Label(self.player_frame,text="00:00/00:00")
+        self.video_timer = Label(self.player_frame, text="00:00/00:00")
         self.video_timer.pack()
-        video_timer=Thread(target=self.timer)
+        video_timer = Thread(target=self.timer)
         video_timer.start()
-        self.stop_button = Button(self.player_frame, text="Stop", width=7, command=lambda: self.stop())
-        self.stop_button.pack(side="right", padx=5)
+        self.quite_button = Button(self.player_frame, text="Quite", width=7, command=lambda: self.stop())
+        self.quite_button.pack(side="right", padx=5)
 
-        self.pause_button = Button(self.player_frame, text="Pause", width=8, command=lambda: self.pause())
-        self.pause_button.pack(side="right", padx=5)
 
-        self.openvideo_button = Button(self.player_frame, text="Choose Video", width=12,height=1,command=lambda: self.open_file())
+        self.openvideo_button = Button(self.player_frame, text="Choose Video", width=12, height=1,
+                                       command=lambda: self.open_file())
         self.openvideo_button.pack(side="left", padx=10)
 
-        self.play_button = Button(self.player_frame, text="Play", width=7, command=lambda: self.play())
-        self.play_button.pack(side="right", padx=5)
+        self.sync_and_play_button = Button(self.player_frame, state="disable", text="Sync and Play", width=12,command=self.sync)
+        self.sync_and_play_button.pack(side="right", padx=5)
 
-        self.volume=Scale(self.player_frame,from_=0,to=100,orient=HORIZONTAL,sliderlength=15,width=7,showvalue=0,label="Volume",command=self.check_volume)
+        self.volume = Scale(self.player_frame, from_=0, to=100, orient=HORIZONTAL, sliderlength=15, width=7,
+                            showvalue=0, label="Volume", command=self.check_volume)
         self.volume.set(80)
         self.volume.pack(side="left")
 
-
-
-        self.show_more_less_button=Button(self.player_window,text="Show More",command=self.show_more_less_action)
+        self.show_more_less_button = Button(self.player_window, text="Show More", command=self.show_more_less_action)
         self.show_more_less_button.pack(pady=5)
 
-
-
-        self.chat_frame=Frame(self.player_window,bg='green')
+        self.chat_frame = Frame(self.player_window, bg='green')
         self.chat_frame.pack(side='left')
 
-        self.chat_label=Label(self.chat_frame,text="Chat:-")
+        self.chat_label = Label(self.chat_frame, text="Chat:-")
         self.chat_label.pack(pady=10)
 
-        self.chatbox=Text(self.chat_frame,width=50,height=10)
+        self.chatbox = Text(self.chat_frame, width=50, height=10)
         self.chatbox.pack()
 
-        self.members_frame=Frame(self.player_window,bg='blue')
+        self.members_frame = Frame(self.player_window, bg='blue')
         self.members_frame.pack(side='right')
 
-        self.member_label=Label(self.members_frame,text="Memebers:-")
+        self.member_label = Label(self.members_frame, text="Memebers:-")
         self.member_label.pack(pady=10)
 
-        #self.scrollbar=Scrollbar(self.members_frame)
+        # self.scrollbar=Scrollbar(self.members_frame)
 
-        self.member_list=Listbox(self.members_frame,width=30,font=('Courier',10))
+        self.member_list = Listbox(self.members_frame, width=30, font=('Courier', 10))
         self.member_list.pack()
 
-        #self.member_list.config(yscrollcommand=self.scrollbar.set)
-        #self.scrollbar.config(command=self.member_list.yview)
+        # self.member_list.config(yscrollcommand=self.scrollbar.set)
+        # self.scrollbar.config(command=self.member_list.yview)
 
         for i in range(50):
-            self.member_list.insert(END,'item',i)
-
+            self.member_list.insert(END, 'item', i)
 
         self.player_window.protocol("WM_DELETE_WINDOW", self.close_window)
 
         self.player_window.mainloop()
 
-
-
     def show_more_less_action(self):
         if self.show_more:
             self.show_more_less_button.config(text="Show More")
-            self.show_more=False
-            self.player_window.geometry("700x155")
+            self.show_more = False
+            self.player_window.geometry("700x125")
         else:
             self.show_more_less_button.config(text="Show Less")
-            self.show_more=True
+            self.show_more = True
             self.player_window.geometry("700x350")
-
-
 
     def open_file(self):
         self.filename = askopenfilename()
@@ -174,139 +167,122 @@ class admin_window:
             if extension in self.filename:
                 isvideo = True
 
-        if isvideo:
-            if self.state=="playing":
+        if isvideo and self.filename.split('/')[-1]==self.admin_file_name[0]:
+            if self.state == "playing":
                 self.stop()
 
-            self.video_title=self.filename.split('/')[-1]
-
-            self.room_id_password_label.config(text="Room Id: " + self.room_id_password[0] + "     Password: " +
-                                                     self.room_id_password[1])
-
             self.player = vlc.MediaPlayer(self.filename)
+
+            # time.sleep(0.0250)
             self.player.play()
-            #time.sleep(0.0250)
-            while(self.player.get_length()==0):
+            while (self.player.get_length() == 0):
                 pass
-            self.video_slider.config(state="active",from_=0, to=self.player.get_length())
+            self.length = self.player.get_length()
+            if self.length == self.admin_file_name[1]:
+                self.video_slider.config(state="active", from_=0, to=self.player.get_length())
+                self.player.audio_set_volume(self.volume.get())
+                self.player.stop()
 
-            StartingPage.server.send(bytes(f"{len('new file'):<20}" + 'new file', 'utf-8'))
+                length_second = self.length // 1000
+                length_minute = length_second // 60
+                length_second = length_second % 60
 
-            message = pickle.dumps([self.video_title,self.player.get_length()])
-            message = bytes(f"{len(message):<20}", 'utf-8') + message
-            StartingPage.server.send(message)
+                length_minute = str(length_minute)
+                if len(length_minute) == 1:
+                    length_minute = '0' + length_minute
 
-            self.length=self.player.get_length()
-            self.player.audio_set_volume(self.volume.get())
-            self.player.stop()
+                length_second = str(length_second)
+                if len(length_second) == 1:
+                    length_second = '0' + length_second
+                self.length = length_minute + ':' + length_second
+                self.info_label.config(text='File load and ready to sync.')
+                self.sync_and_play_button.config(state="active")
+                self.openvideo_button.config(state="disable")
+                self.video_timer.config(text="00:00/" + self.length)
 
-            length_second=self.length//1000
-            length_minute=length_second//60
-            length_second=length_second%60
-
-            length_minute=str(length_minute)
-            if len(length_minute)==1:
-                length_minute='0'+length_minute
-
-            length_second=str(length_second)
-            if len(length_second)==1:
-                length_second='0'+length_second
-            self.length=length_minute+':'+length_second
-            sync_thread=Thread(target=self.sync_thread)
-            sync_thread.start()
-            self.video_timer.config(text="00:00/"+self.length)
-            self.openvideo_button.config(state="disable")
+            else:
+                if self.filename != "":
+                    messagebox.showerror("Invalid", "Please Choose the valid file.")
+                    self.filename = ""
 
         else:
-            if self.filename!="":
-                messagebox.showerror("Not a Video File", "Please Choose a Video File to play.")
-                self.filename=""
+            if self.filename != "":
+                messagebox.showerror("Invalid", "Please Choose the valid file.")
+                self.filename = ""
 
-
-    def video_slider_change(self,event):
-        if self.video_slider.get()-self.player.get_time() and self.ex:
-            self.pause()
-            self.player.set_time(self.video_slider.get())
-
-            #time.sleep(0.001)
 
     def stop(self):
-        if self.state!="":
+        if self.state != "":
             self.player.stop()
-            self.state=""
+            self.state = ""
 
     def pause(self):
-        if self.state=="playing":
+        if self.state == "playing":
             self.player.pause()
-            self.state="pause"
-            StartingPage.server.send(bytes(f"{len('pause'):<20}" + 'pause', 'utf-8'))
+            self.state = "pause"
 
     def play(self):
-        StartingPage.server.send(bytes(f"{len('play'):<20}" + 'play', 'utf-8'))
-        time = str(self.video_slider.get())
-        StartingPage.server.send(bytes(f"{len(time):<20}" + time, 'utf-8'))
-        if self.state=="pause":
+        if self.state == "pause":
             self.player.play()
-            self.state="playing"
+            self.state = "playing"
 
-
-        elif self.state=="playing":
+        elif self.state == "playing":
             return
 
-        elif self.filename=="":
-            messagebox.showerror("No Video Found","Choose a video file to play")
+        elif self.filename == "":
+            messagebox.showerror("No Video Found", "Choose a video file to play")
         else:
             self.player.play()
-            self.state="playing"
-            #self.player.set_fullscreen(True)
+            self.state = "playing"
+            # self.player.set_fullscreen(True)
 
-
-    def check_volume(self,event):
-        if self.state=="playing":
+    def check_volume(self, event):
+        if self.state == "playing":
             self.player.audio_set_volume(self.volume.get())
 
+
     def Video_progress(self):
-        while(self.running):
-            if self.state=="playing":
+        while (self.running):
+            if self.state == "playing":
                 self.video_slider.set(self.player.get_time())
-            elif self.state=="":
+            elif self.state == "":
                 self.video_slider.set(0)
             time.sleep(0.0001)
 
-            #if self.player_window.state()!="normal":
+            # if self.player_window.state()!="normal":
             #    break
 
     def timer(self):
-        while(self.running):
-            current_time=self.video_slider.get()
+        while (self.running):
+            current_time = self.video_slider.get()
             time.sleep(0.0001)
             if not self.running:
                 break
 
-            second=current_time//1000
-            minute=second//60
-            second=second%60
+            second = current_time // 1000
+            minute = second // 60
+            second = second % 60
 
-            minute=str(minute)
-            if len(minute)==1:
-                minute='0'+minute
+            minute = str(minute)
+            if len(minute) == 1:
+                minute = '0' + minute
 
-            second=str(second)
-            if len(second)==1:
-                second='0'+second
+            second = str(second)
+            if len(second) == 1:
+                second = '0' + second
 
-            self.video_timer.config(text=minute+':'+second+'/'+self.length)
+            self.video_timer.config(text=minute + ':' + second + '/' + self.length)
 
             time.sleep(0.0001)
 
             if not self.running:
                 break
-            #time.sleep(0.0001)
+            # time.sleep(0.0001)
 
-    def receive_object(self,server):
+    def receive_object(self, server):
         full_msg = b''
         new_msg = True
-        msglen=0
+        msglen = 0
         while True:
             print("before recieve")
             msg = server.recv(64)
@@ -322,10 +298,10 @@ class admin_window:
                 print('here')
                 return pickle.loads(full_msg[20:])
 
-    def receive_data(self,server):
+    def receive_data(self, server):
         full_msg = b''
         new_msg = True
-        msglen=0
+        msglen = 0
         while True:
             msg = server.recv(64)
             if new_msg:
@@ -338,21 +314,36 @@ class admin_window:
                 new_msg = True
                 return full_msg[20:].decode()
 
-
-    def sync_thread(self):
+    def reciever_thread(self):
         while(True):
             action=self.receive_data(StartingPage.server)
-            print("sync thread: ", action)
-            if action=='sync':
-                if self.state=="":
-                    StartingPage.server.send(bytes(f"{len('empty'):<20}" + 'empty', 'utf-8'))
-                elif self.state == "playing":
-                    self.play()
-                elif self.state== "pause":
-                    self.play()
-                    self.pause()
+            print(action)
+            if action=='play':
+                self.play()
+
+                self.pause()
+                time = self.receive_data(StartingPage.server)
+                self.player.set_time(int(time))
+                self.video_slider.set(int(time))
+                self.play()
+                print(int(time))
+
+            elif action=='pause':
+                self.pause()
+    def sync(self):
+        self.sync_and_play_button.config(state="disabled")
+        self.info_label.config(text='Synced with admin.')
+        StartingPage.server.send(bytes(f"{len('sync'):<20}" + 'sync', 'utf-8'))
+        reciever_thread=Thread(target=self.reciever_thread)
+        reciever_thread.start()
+        '''action=self.receive_data(StartingPage.server)
+        if action=="empty":
+            reciever_thread = Thread(target=self.reciever_thread)
+            reciever_thread.start()'''
 
     def close_window(self):
-        self.running=False
+        self.running = False
         time.sleep(0.0001)
         self.player_window.destroy()
+
+#member_window()

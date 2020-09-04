@@ -48,6 +48,7 @@ class continue_without_login:
 
     def open_file(self):
         self.filename = askopenfilename()
+        print("crossed")
         isvideo = False
 
         extensions = [
@@ -113,8 +114,7 @@ class continue_without_login:
 
         if isvideo:
             if self.state=="playing":
-                self.player.stop()
-                self.state=""
+                self.stop()
 
             self.player = vlc.MediaPlayer(self.filename)
             self.player.play()
@@ -155,6 +155,7 @@ class continue_without_login:
 
     def stop(self):
         if self.state!="":
+            #self.player.set_time(0)
             self.player.stop()
             self.state=""
 
@@ -187,6 +188,8 @@ class continue_without_login:
         while(self.running):
             if self.state=="playing":
                 self.video_slider.set(self.player.get_time())
+            elif self.state=="":
+                self.video_slider.set(0)
             time.sleep(0.0001)
 
             #if self.player_window.state()!="normal":

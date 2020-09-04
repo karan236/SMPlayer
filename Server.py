@@ -2,13 +2,17 @@ import socket
 import pickle
 import mysql.connector
 from threading import *
+import pickle
+import random
 
 class Server:
     def __init__(self):
 
         self.database=mysql.connector.connect(host='localhost',user='root',passwd='84406232',database='social_media_player')
         self.cursor=self.database.cursor()
-
+        self.admin_objects={}
+        self.admin_file_length={}
+        self.member_objects={}
         self.server=socket.socket()
         host=''
         port=9999
@@ -78,8 +82,87 @@ class Server:
                 self.cursor.execute(query)
                 if len(list(self.cursor))!=0:
                     client.send(bytes(f"{len('true'):<20}" + 'true', 'utf-8'))
+                    mode_selection=Thread(target=self.mode_selection,args=(client, data[0],))
+                    mode_selection.start()
                     return
                 else:
                     client.send(bytes(f"{len('false'):<20}" + 'false', 'utf-8'))
+
+
+    def mode_selection(self,client,user_id):
+        while True:
+            action=self.receive_data(client)
+
+            if action=='create':
+                roomid = "id" + user_id
+                password=str(random.randint(100000,999999))
+                message=pickle.dumps([roomid,password])
+                message = bytes(f"{len(message):<20}", 'utf-8') + message
+                client.send(message)
+                #client.send(bytes(f"{len('hello'):<20}" + 'hello', 'utf-8'))
+                query = "INSERT INTO ADMIN_DATA VALUES(" + "\"" f"{roomid}" + "\"" + "," + "\"" f"{password}" + "\"" + "," + "\"" f"{roomid[2:]}" + "\"" ")"
+                self.cursor.execute(query)
+                self.database.commit()
+                self.admin_objects[roomid[2:]]=client
+                admin_thread=Thread(target=self.admin_thread,args=(client,roomid[2:],))
+                admin_thread.start()
+                return
+            else:
+                data=self.receive_object(client)
+                query = "select * from admin_data where room_id=" + "\"" f"{data[0]}" + "\"" + " and " + "room_password=" + "\"" + f"{data[1]}" + "\""
+                self.cursor.execute(query)
+                if len(list(self.cursor))!=0:
+                    query = "select * from admin_data where room_id=" + "\"" f"{data[0]}" + "\"" + " and " + "room_password=" + "\"" + f"{data[1]}" + "\""
+                    self.cursor.execute(query)
+                    admin_id=list(self.cursor)[0][-1]
+                    query = "INSERT INTO MEMBER_DATA VALUES(" + "\"" f"{admin_id}" + "\"" + "," + "\"" f"{data[0]}" + "\"" + "," + "\"" f"{data[1]}" + "\"" + "," + "\"" f"{user_id}" + "\"" ")"
+                    self.cursor.execute(query)
+                    self.database.commit()
+                    client.send(bytes(f"{len('true'):<20}" + 'true', 'utf-8'))
+                    message = pickle.dumps(self.admin_file_length[admin_id])
+                    message = bytes(f"{len(message):<20}", 'utf-8') + message
+                    client.send(message)
+                    self.member_objects[user_id]=client
+                    if self.receive_data(client)=='sync':
+                        self.admin_objects[admin_id].send(bytes(f"{len('sync'):<20}" + 'sync', 'utf-8'))
+                    return
+                else:
+                    client.send(bytes(f"{len('false'):<20}" + 'false', 'utf-8'))
+
+
+    def admin_thread(self,client,admin_id):
+        while(True):
+            action=self.receive_data(client)
+            print(action)
+            if action=='new file':
+                file_name,file_length=self.receive_object(client)
+                self.admin_file_length[admin_id]=[file_name, file_length]
+            elif action=='play':
+                time = self.receive_data(client)
+                time = str(time)
+                query = "select * from member_data where admin_id=" + "\"" f"{admin_id}" + "\""
+                self.cursor.execute(query)
+                for i in list(self.cursor):
+                    self.member_objects[i[-1]].send(
+                        bytes(f"{len('play'):<20}" + 'play', 'utf-8'))
+                    print("slider sent")
+                    self.member_objects[i[-1]].send(bytes(f"{len(time):<20}" + time, 'utf-8'))
+                    print("time sent")
+            elif action=='pause':
+                query = "select * from member_data where admin_id=" + "\"" f"{admin_id}" + "\""
+                self.cursor.execute(query)
+                for i in list(self.cursor):
+                    self.member_objects[i[-1]].send(bytes(f"{len('pause'):<20}" + 'pause', 'utf-8'))
+            elif action=='empty':
+                query = "select * from member_data where admin_id=" + "\"" f"{admin_id}" + "\""
+                self.cursor.execute(query)
+                for i in list(self.cursor):
+                    self.member_objects[i[-1]].send(bytes(f"{len('empty'):<20}" + 'empty', 'utf-8'))
+
+
+
+    def member_thread(self,client,member_id):
+        pass
+
 
 s=Server()

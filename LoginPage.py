@@ -3,6 +3,7 @@ from tkinter import messagebox
 import CreateNewAccount
 import StartingPage
 import pickle
+import ModeSelection
 import socket
 
 class login:
@@ -71,6 +72,8 @@ class login:
                 check=self.receive_data(StartingPage.server)
                 if check=='true':
                     messagebox.showinfo('Success', 'Login Successfull!')
+                    self.login_window.destroy()
+                    ModeSelection.Mode_Selection()
                 else:
                     messagebox.showerror('Error','Invalid User Name or Password.')
             except:
