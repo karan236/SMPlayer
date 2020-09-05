@@ -362,18 +362,20 @@ class admin_window:
         while(self.running):
             action=self.receive_data(StartingPage.server)
             print("sync thread: ", action)
+            time.sleep(1.5)
             if not self.running:
                 break
             if action=='sync':
                 if self.state=="":
                     StartingPage.server.send(bytes(f"{len('empty'):<20}" + 'empty', 'utf-8'))
                 elif self.state == "playing":
+                    #time.sleep(1.5)
                     self.play()
                 elif self.state== "pause":
-                    self.play()
+                    StartingPage.server.send(bytes(f"{len('empty'):<20}" + 'empty', 'utf-8'))
                     if not self.running:
                         break
-                    self.pause()
+
             if not self.running:
                 break
 

@@ -318,8 +318,11 @@ class member_window:
     def reciever_thread(self):
         while(self.running):
             try:
+                print("waiting to recieve action")
                 action=self.receive_data(StartingPage.server)
+                print('recived action')
             except:
+                print('action error')
                 return
             print(action)
             if action=='play':
@@ -354,6 +357,9 @@ class member_window:
 
     def close_window(self):
         self.running = False
+        StartingPage.server.send(bytes(f"{len('stop'):<20}" + 'stop', 'utf-8'))
+        StartingPage.server.shutdown(socket.SHUT_RDWR)
+        StartingPage.server.close()
         time.sleep(0.0001)
         self.player_window.destroy()
 

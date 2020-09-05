@@ -125,6 +125,11 @@ class Server:
                     self.member_objects[user_id]=client
                     if self.receive_data(client)=='sync':
                         self.admin_objects[admin_id].send(bytes(f"{len('sync'):<20}" + 'sync', 'utf-8'))
+                        if self.receive_data(client)=='stop':
+                            query = "DELETE FROM MEMBER_DATA WHERE member_id=" + "\"" f"{user_id}" + "\""
+                            self.cursor.execute(query)
+                            self.database.commit()
+                            print("deleted")
                     return
                 else:
                     client.send(bytes(f"{len('false'):<20}" + 'false', 'utf-8'))
