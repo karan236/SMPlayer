@@ -8,7 +8,7 @@ import random
 class Server:
     def __init__(self):
 
-        self.database=mysql.connector.connect(host='localhost',user='root',passwd='84406232',database='social_media_player')
+        self.database=mysql.connector.connect(host='localhost',user='root',passwd='1234',database='social_media_player')
         self.cursor=self.database.cursor()
         self.admin_objects={}
         self.admin_file_length={}
